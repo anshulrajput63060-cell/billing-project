@@ -1,0 +1,205 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* =========================================================
+     THEME 1: DARK MODE (Midnight Slate & Vibrant Accents)
+     ========================================================= */
+  :root,
+  [data-theme="dark"] {
+    --color-slate-950: 11 15 25;     /* #0b0f19 - Main Page Background */
+    --color-slate-900: 15 23 42;     /* #0f172a - Cards, Sidebar, Navbar */
+    --color-slate-850: 23 32 51;     /* #172033 - Header Wells, Table Headers */
+    --color-slate-800: 30 41 59;     /* #1e293b - Inputs, Buttons, Modals */
+    --color-slate-750: 37 51 74;     /* #25334a - Hover States */
+    --color-slate-700: 51 65 85;     /* #334155 - Borders, Dividers */
+    --color-slate-600: 71 85 105;    /* #475569 - Secondary Borders & Muted Icons */
+    --color-slate-500: 100 116 139;  /* #64748b - Subtitles, Badges */
+    --color-slate-400: 148 163 184;  /* #94a3b8 - Muted Text */
+    --color-slate-300: 203 213 225;  /* #cbd5e1 - Secondary Text */
+    --color-slate-200: 226 232 240;  /* #e2e8f0 - Body / Primary Text */
+    --color-slate-100: 241 245 249;  /* #f1f5f9 - Headings & Titles */
+    --color-slate-50:  248 250 252;  /* #f8fafc - High Emphasis */
+
+    --scrollbar-track: #0f172a;
+    --scrollbar-thumb: #334155;
+    --scrollbar-hover: #475569;
+    --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+    --ambient-tint: transparent;
+
+    color-scheme: dark;
+  }
+
+  /* =========================================================
+     THEME 2: LOW LIGHT MODE (Warm Dim OLED • Eye Comfort)
+     Ultra-deep black & warm candlelight tones for night shifts.
+     Cuts blue-light strain during late hours.
+     ========================================================= */
+  [data-theme="dim"],
+  [data-theme="low-light"] {
+    --color-slate-950: 6 7 10;        /* #06070a - Pure OLED deep night */
+    --color-slate-900: 17 18 24;      /* #111218 - Warm charcoal cards & panels */
+    --color-slate-850: 25 26 34;      /* #191a22 - Card headers & subtle boxes */
+    --color-slate-800: 34 35 45;      /* #22232d - Low-glare soft inputs */
+    --color-slate-750: 44 46 58;      /* #2c2e3a - Soft warm hover */
+    --color-slate-700: 58 60 74;      /* #3a3c4a - Muted borders */
+    --color-slate-600: 80 83 99;      /* #505363 - Low-strain icons */
+    --color-slate-500: 116 118 132;   /* #747684 - Dim secondary labels */
+    --color-slate-400: 168 165 156;   /* #a8a59c - Warm muted body (anti-glare) */
+    --color-slate-300: 210 205 194;   /* #d2cdc2 - Warm soft body text */
+    --color-slate-200: 238 231 218;   /* #eee7da - Candlelight soft cream */
+    --color-slate-100: 248 242 232;   /* #f8f2e8 - Warm headings */
+    --color-slate-50:  255 251 243;   /* #fffbf3 - Warm high emphasis */
+
+    --scrollbar-track: #08090d;
+    --scrollbar-thumb: #282a35;
+    --scrollbar-hover: #3e4152;
+    --card-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.85);
+    --ambient-tint: rgba(245, 158, 11, 0.03);
+
+    color-scheme: dark;
+  }
+
+  /* =========================================================
+     THEME 3: LIGHT MODE (Crisp Retail Daylight)
+     Clean white cards & deep slate text for sunny store counters.
+     ========================================================= */
+  [data-theme="light"] {
+    --color-slate-950: 245 247 251;  /* #f5f7fb - Clean daylight soft background */
+    --color-slate-900: 255 255 255;  /* #ffffff - Crisp pure white cards & navbar */
+    --color-slate-850: 241 245 249;  /* #f1f5f9 - Card headers & table bands */
+    --color-slate-800: 248 250 252;  /* #f8fafc - Search fields & inputs */
+    --color-slate-750: 226 232 240;  /* #e2e8f0 - Hover background */
+    --color-slate-700: 203 213 225;  /* #cbd5e1 - Card & table borders */
+    --color-slate-600: 148 163 184;  /* #94a3b8 - Secondary borders */
+    --color-slate-500: 100 116 139;  /* #64748b - Dim labels */
+    --color-slate-400: 71 85 105;    /* #475569 - Crisp readable gray text */
+    --color-slate-300: 51 65 85;     /* #334155 - Dark slate body text */
+    --color-slate-200: 30 41 59;     /* #1e293b - Primary high-contrast text */
+    --color-slate-100: 15 23 42;     /* #0f172a - Deep black-slate headings */
+    --color-slate-50:  2 6 23;       /* #020617 - Strong accents */
+
+    --scrollbar-track: #f1f5f9;
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-hover: #94a3b8;
+    --card-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
+    --ambient-tint: transparent;
+
+    color-scheme: light;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Inter', sans-serif;
+  }
+}
+
+/* =========================================================
+   LIGHT THEME TYPOGRAPHY & OVERRIDES
+   Ensures headings and text in light mode are dark slate,
+   while preserving white text on brand colored buttons.
+   ========================================================= */
+[data-theme="light"] h1.text-white,
+[data-theme="light"] h2.text-white,
+[data-theme="light"] h3.text-white,
+[data-theme="light"] h4.text-white,
+[data-theme="light"] h5.text-white,
+[data-theme="light"] h6.text-white,
+[data-theme="light"] p.text-white,
+[data-theme="light"] td.text-white,
+[data-theme="light"] th.text-white,
+[data-theme="light"] input.text-white,
+[data-theme="light"] select.text-white,
+[data-theme="light"] textarea.text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] span.text-white:not([class*="bg-brand"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-amber"]):not([class*="bg-indigo"]):not(button *):not(a.bg-brand-600 *),
+[data-theme="light"] div.text-white:not([class*="bg-brand"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-amber"]):not([class*="bg-indigo"]):not([class*="bg-gradient"]):not(button *):not(a.bg-brand-600 *) {
+  color: #0f172a !important;
+}
+
+/* Retain pure white text inside colored action buttons and badges in light mode */
+[data-theme="light"] [class*="bg-brand"] .text-white,
+[data-theme="light"] [class*="bg-emerald"] .text-white,
+[data-theme="light"] [class*="bg-rose"] .text-white,
+[data-theme="light"] [class*="bg-amber"] .text-white,
+[data-theme="light"] [class*="bg-indigo"] .text-white,
+[data-theme="light"] [class*="bg-brand"].text-white,
+[data-theme="light"] [class*="bg-emerald"].text-white,
+[data-theme="light"] [class*="bg-rose"].text-white,
+[data-theme="light"] button[class*="bg-brand"],
+[data-theme="light"] button[class*="bg-brand"] * {
+  color: #ffffff !important;
+}
+
+/* Light mode keyboard tags */
+[data-theme="light"] kbd {
+  background-color: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+/* Low Light mode keyboard tags */
+[data-theme="dim"] kbd,
+[data-theme="low-light"] kbd {
+  background-color: #171822;
+  color: #d2cdc2;
+  border-color: #2e303f;
+}
+
+/* Low Light mode soothing eye-comfort card shadows & warm borders */
+[data-theme="dim"] .shadow-2xl,
+[data-theme="low-light"] .shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.95);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track, #0f172a);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #334155);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover, #475569);
+}
+
+/* Print Styles for Invoices and Thermal Slips */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  #printable-receipt, #printable-receipt * {
+    visibility: visible;
+  }
+  
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 8px;
+    background: white !important;
+    color: black !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
