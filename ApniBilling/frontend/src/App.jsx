@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { BillingProvider } from './context/BillingContext';
@@ -15,7 +15,7 @@ import { Settings } from './pages/Settings';
 
 export default function App() {
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <HashRouter>
       <ThemeProvider>
         <AuthProvider>
           <BillingProvider>
@@ -40,6 +40,6 @@ export default function App() {
         </BillingProvider>
       </AuthProvider>
       </ThemeProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
