@@ -82,9 +82,9 @@ export const Products = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-slate-950">
+    <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-5 bg-slate-950">
       {/* Title Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-display font-bold text-white">Product & Stock Catalog</h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -100,25 +100,26 @@ export const Products = () => {
         </button>
       </div>
 
-      {/* Search and Filters */}
-      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
+      {/* Control Bar: Search and Category Pills */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name, barcode, SKU, or HSN..."
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            placeholder="Search by product name, SKU, or barcode..."
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+        {/* Category Pills */}
+        <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 selectedCategory === cat
                   ? 'bg-brand-600 text-white shadow-sm'
                   : 'bg-slate-800 text-slate-400 hover:text-white'
@@ -130,13 +131,71 @@ export const Products = () => {
         </div>
       </div>
 
-      {/* Products Table */}
-      <div className="rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shadow-sm">
+      {/* Mobile Product Cards View (< sm screens) */}
+      <div className="sm:hidden space-y-3">
+        {filteredProducts.length === 0 ? (
+          <div className="p-8 text-center text-slate-500 bg-slate-900 rounded-2xl border border-slate-800">
+            No products match your search.
+          </div>
+        ) : (
+          filteredProducts.map((p) => {
+            const isLowStock = p.currentStock <= (p.lowStockAlert || 5);
+            return (
+              <div
+                key={p.id}
+                className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2.5 shadow-sm"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-750">
+                      {p.category || 'General'}
+                    </span>
+                    <h4 className="text-sm font-bold text-white mt-1.5">{p.name}</h4>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      Barcode: {p.barcode || '-'} • HSN: {p.hsnSac}
+                    </span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                    isLowStock 
+                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                      : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  }`}>
+                    {isLowStock ? 'Low Stock' : 'In Stock'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs py-1.5 border-y border-slate-800/80">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">Selling Price:</span>
+                    <span className="font-mono font-bold text-white text-sm">
+                      {formatCurrency(p.sellingPrice)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-slate-400 block text-[10px]">Current Stock:</span>
+                    <span className={`font-mono font-bold text-sm ${isLowStock ? 'text-amber-400' : 'text-slate-200'}`}>
+                      {p.currentStock} {p.unit || 'PCS'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                  <span>GST: <strong className="text-brand-300">{p.gstRate}%</strong></span>
+                  <span>Cost: <strong className="font-mono text-slate-300">{formatCurrency(p.purchasePrice)}</strong></span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop Products Datatable (sm and larger screens) */}
+      <div className="hidden sm:block rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="bg-slate-850/80 border-b border-slate-800 text-slate-400 uppercase font-semibold text-[10px]">
-                <th className="py-3 px-4">Item Details</th>
+                <th className="py-3 px-4">Product Details</th>
                 <th className="py-3 px-4">Category</th>
                 <th className="py-3 px-4">Barcode / SKU</th>
                 <th className="py-3 px-4">HSN / SAC</th>
@@ -150,10 +209,6 @@ export const Products = () => {
             <tbody className="divide-y divide-slate-800 text-slate-200">
               {filteredProducts.map((p) => {
                 const isLowStock = p.currentStock <= (p.lowStockAlert || 5);
-                const margin = p.sellingPrice > 0 
-                  ? (((p.sellingPrice - p.purchasePrice) / p.sellingPrice) * 100).toFixed(0)
-                  : 0;
-
                 return (
                   <tr key={p.id} className="hover:bg-slate-850/40 transition-colors">
                     <td className="py-3 px-4">
@@ -207,8 +262,8 @@ export const Products = () => {
 
       {/* Add Product Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xl p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xl p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <h3 className="font-display font-semibold text-white text-base">Add New Product to Inventory</h3>
               <button 
@@ -228,11 +283,11 @@ export const Products = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Fortune Sunflower Oil 1L"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:ring-1 focus:ring-brand-500"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-1 focus:ring-brand-500"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-300 block mb-1">Barcode (EAN-13 / Code128)</label>
                   <input
@@ -240,7 +295,7 @@ export const Products = () => {
                     value={formData.barcode}
                     onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                     placeholder="Scan with scanner or type..."
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
                   />
                 </div>
                 <div>
@@ -250,12 +305,12 @@ export const Products = () => {
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
                     placeholder="e.g. OIL-01"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-300 block mb-1">Category</label>
                   <input
@@ -263,7 +318,7 @@ export const Products = () => {
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     placeholder="Groceries, Apparel..."
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:ring-1 focus:ring-brand-500"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-1 focus:ring-brand-500"
                   />
                 </div>
                 <div>
@@ -274,7 +329,7 @@ export const Products = () => {
                     value={formData.hsnSac}
                     onChange={(e) => setFormData({ ...formData, hsnSac: e.target.value })}
                     placeholder="e.g. 1512"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
                   />
                 </div>
                 <div>
@@ -282,7 +337,7 @@ export const Products = () => {
                   <select
                     value={formData.gstRate}
                     onChange={(e) => setFormData({ ...formData, gstRate: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:ring-1 focus:ring-brand-500"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-1 focus:ring-brand-500"
                   >
                     <option value="0">0% (Nil)</option>
                     <option value="5">5% GST</option>
@@ -293,64 +348,73 @@ export const Products = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-slate-300 block mb-1">Selling Price (₹) *</label>
                   <input
                     type="number"
-                    step="0.01"
                     required
+                    min="0"
+                    step="any"
                     value={formData.sellingPrice}
                     onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
-                    placeholder="135.00"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
+                    placeholder="0.00"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono font-bold focus:ring-1 focus:ring-brand-500"
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">Purchase Price (₹)</label>
+                  <label className="text-xs font-medium text-slate-300 block mb-1">Purchase Cost (₹)</label>
                   <input
                     type="number"
-                    step="0.01"
+                    min="0"
+                    step="any"
                     value={formData.purchasePrice}
                     onChange={(e) => setFormData({ ...formData, purchasePrice: e.target.value })}
-                    placeholder="115.00"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
+                    placeholder="0.00"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">Initial Opening Stock</label>
+                  <label className="text-xs font-medium text-slate-300 block mb-1">Unit of Measure</label>
+                  <select
+                    value={formData.unit}
+                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:ring-1 focus:ring-brand-500"
+                  >
+                    <option value="PCS">PCS (Pieces)</option>
+                    <option value="KG">KG (Kilograms)</option>
+                    <option value="LTR">LTR (Litres)</option>
+                    <option value="GM">GM (Grams)</option>
+                    <option value="PKT">PKT (Packet)</option>
+                    <option value="BAG">BAG (Bags)</option>
+                    <option value="BOX">BOX (Boxes)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-300 block mb-1">Opening Stock</label>
                   <input
                     type="number"
                     value={formData.currentStock}
                     onChange={(e) => setFormData({ ...formData, currentStock: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-slate-300 block mb-1">Low Stock Alert Limit</label>
-                  <input
-                    type="number"
-                    value={formData.lowStockAlert}
-                    onChange={(e) => setFormData({ ...formData, lowStockAlert: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs font-mono focus:ring-1 focus:ring-brand-500"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs font-mono font-bold focus:ring-1 focus:ring-brand-500"
                   />
                 </div>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-800">
+              <div className="pt-3 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-semibold"
+                  className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold shadow-md"
                 >
                   Save Product
                 </button>

@@ -1,30 +1,73 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
-import { INITIAL_PRODUCTS, INITIAL_CUSTOMERS, INITIAL_INVOICES } from '../data/mockData';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { calculateGST } from '../utils/formatters';
 import { useAuth } from './AuthContext';
 
 const BillingContext = createContext();
 
 export const BillingProvider = ({ children }) => {
-  const { businessProfile } = useAuth();
+  const { activeStoreId, businessProfile } = useAuth();
+
+  // Helper to get store key
+  const getStorageKey = (type) => (activeStoreId ? `apni_store_${activeStoreId}_${type}` : `apni_temp_${type}`);
 
   // Products and Inventory state
   const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('apni_products');
-    return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
+    if (!activeStoreId) return [];
+    try {
+      const saved = localStorage.getItem(`apni_store_${activeStoreId}_products`);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   // Parties/Customers state
   const [customers, setCustomers] = useState(() => {
-    const saved = localStorage.getItem('apni_customers');
-    return saved ? JSON.parse(saved) : INITIAL_CUSTOMERS;
+    if (!activeStoreId) return [];
+    try {
+      const saved = localStorage.getItem(`apni_store_${activeStoreId}_customers`);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   // Invoices History state
   const [invoices, setInvoices] = useState(() => {
-    const saved = localStorage.getItem('apni_invoices');
-    return saved ? JSON.parse(saved) : INITIAL_INVOICES;
+    if (!activeStoreId) return [];
+    try {
+      const saved = localStorage.getItem(`apni_store_${activeStoreId}_invoices`);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
+
+  // Sync state when activeStoreId changes
+  useEffect(() => {
+    if (activeStoreId) {
+      try {
+        const p = localStorage.getItem(`apni_store_${activeStoreId}_products`);
+        setProducts(p ? JSON.parse(p) : []);
+
+        const c = localStorage.getItem(`apni_store_${activeStoreId}_customers`);
+        const parsedC = c ? JSON.parse(c) : [];
+        setCustomers(parsedC);
+        setSelectedCustomer(parsedC[0] || null);
+
+        const inv = localStorage.getItem(`apni_store_${activeStoreId}_invoices`);
+        setInvoices(inv ? JSON.parse(inv) : []);
+        setCart([]);
+      } catch (err) {
+        console.error('Error loading store data', err);
+      }
+    } else {
+      setProducts([]);
+      setCustomers([]);
+      setInvoices([]);
+      setCart([]);
+    }
+  }, [activeStoreId]);
 
   // Current POS Cart State
   const [cart, setCart] = useState([]);
@@ -37,20 +80,26 @@ export const BillingProvider = ({ children }) => {
   // Active Print Receipt State
   const [activeReceipt, setActiveReceipt] = useState(null);
 
-  // Synchronize localStorage
+  // Synchronize localStorage with store isolation
   const saveProducts = (updated) => {
     setProducts(updated);
-    localStorage.setItem('apni_products', JSON.stringify(updated));
+    if (activeStoreId) {
+      localStorage.setItem(`apni_store_${activeStoreId}_products`, JSON.stringify(updated));
+    }
   };
 
   const saveCustomers = (updated) => {
     setCustomers(updated);
-    localStorage.setItem('apni_customers', JSON.stringify(updated));
+    if (activeStoreId) {
+      localStorage.setItem(`apni_store_${activeStoreId}_customers`, JSON.stringify(updated));
+    }
   };
 
   const saveInvoices = (updated) => {
     setInvoices(updated);
-    localStorage.setItem('apni_invoices', JSON.stringify(updated));
+    if (activeStoreId) {
+      localStorage.setItem(`apni_store_${activeStoreId}_invoices`, JSON.stringify(updated));
+    }
   };
 
   // Add Item to POS Cart (Supports barcode scan or clicking)
@@ -71,13 +120,13 @@ export const BillingProvider = ({ children }) => {
           {
             id: product.id,
             name: product.name,
-            sku: product.sku,
-            barcode: product.barcode,
-            hsnSac: product.hsnSac,
-            unit: product.unit,
-            sellingPrice: product.sellingPrice,
-            gstRate: product.gstRate,
-            cessRate: product.cessRate || 0,
+            sku: product.sku || '',
+            barcode: product.barcode || '',
+            hsnSac: product.hsnSac || '9999',
+            unit: product.unit || 'PCS',
+            sellingPrice: Number(product.sellingPrice) || 0,
+            gstRate: Number(product.gstRate) || 0,
+            cessRate: Number(product.cessRate) || 0,
             quantity: quantity,
             discountAmount: 0,
           },
@@ -125,13 +174,14 @@ export const BillingProvider = ({ children }) => {
 
   // Update customer details directly from POS input
   const updateCustomerDetails = (fields) => {
+    const defaultState = businessProfile?.stateCode || '07';
     setSelectedCustomer((prev) => {
       const base = prev || {
         id: `walkin-${Date.now()}`,
         name: 'Cash Sale (Retail Walk-in)',
         phone: '',
         gstin: '',
-        stateCode: businessProfile.stateCode,
+        stateCode: defaultState,
         type: 'B2C',
         balance: 0,
       };
@@ -157,10 +207,11 @@ export const BillingProvider = ({ children }) => {
 
   // Real-time authoritative calculation
   const calculations = useMemo(() => {
+    const businessState = businessProfile?.stateCode || '07';
     return calculateGST({
       items: cart,
-      customerState: selectedCustomer?.stateCode || businessProfile.stateCode,
-      businessState: businessProfile.stateCode,
+      customerState: selectedCustomer?.stateCode || businessState,
+      businessState: businessState,
       orderDiscount: orderDiscount,
     });
   }, [cart, selectedCustomer, businessProfile, orderDiscount]);
@@ -169,8 +220,9 @@ export const BillingProvider = ({ children }) => {
   const finalizeInvoice = (options = {}) => {
     if (cart.length === 0) return null;
 
-    const invoiceSeq = (invoices.length + 87).toString().padStart(4, '0');
-    const invoiceNumber = `${businessProfile.invoicePrefix}${invoiceSeq}`;
+    const prefix = businessProfile?.invoicePrefix || 'INV/';
+    const invoiceSeq = (invoices.length + 1).toString().padStart(4, '0');
+    const invoiceNumber = `${prefix}${invoiceSeq}`;
     const now = new Date().toISOString();
 
     const finalPaid = paidAmountInput === '' 
@@ -179,6 +231,7 @@ export const BillingProvider = ({ children }) => {
     
     const balance = Math.max(0, calculations.grandTotal - finalPaid);
     const invoiceStatus = balance === 0 ? 'PAID' : (finalPaid > 0 ? 'PARTIAL' : 'UNPAID');
+    const businessState = businessProfile?.stateCode || '07';
 
     const newInvoice = {
       id: `inv-${Date.now()}`,
@@ -187,7 +240,7 @@ export const BillingProvider = ({ children }) => {
       customerName: selectedCustomer ? selectedCustomer.name : 'Walk-in Customer',
       customerPhone: selectedCustomer?.phone || '',
       customerGstin: selectedCustomer?.gstin || '',
-      customerState: selectedCustomer?.stateCode || businessProfile.stateCode,
+      customerState: selectedCustomer?.stateCode || businessState,
       isInterState: calculations.isInterState,
       totalItems: cart.length,
       subtotal: calculations.subtotal,
@@ -226,7 +279,7 @@ export const BillingProvider = ({ children }) => {
         if (c.id === selectedCustomer.id) {
           return {
             ...c,
-            balance: Number((c.balance + balance).toFixed(2)),
+            balance: Number(((c.balance || 0) + balance).toFixed(2)),
           };
         }
         return c;

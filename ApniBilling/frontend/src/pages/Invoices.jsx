@@ -6,10 +6,9 @@ import {
   Filter, 
   Printer, 
   Plus, 
-  ArrowUpDown,
-  Download,
   Calendar,
-  Eye
+  Eye,
+  MessageSquare
 } from 'lucide-react';
 import { useBilling } from '../context/BillingContext';
 import { formatCurrency, formatDate, formatTime } from '../utils/formatters';
@@ -30,9 +29,9 @@ export const Invoices = () => {
   });
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 bg-slate-950">
+    <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4 sm:space-y-5 bg-slate-950">
       {/* Page Title & Action */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-display font-bold text-white">Invoices & Sales Slips</h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -49,7 +48,7 @@ export const Invoices = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="relative w-full md:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -57,17 +56,17 @@ export const Invoices = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search invoice number, party or phone..."
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </div>
 
         {/* Status Filters */}
-        <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+        <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 no-scrollbar">
           {['ALL', 'PAID', 'PARTIAL', 'UNPAID'].map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 statusFilter === status
                   ? 'bg-brand-600 text-white shadow-sm'
                   : 'bg-slate-800 text-slate-400 hover:text-white'
@@ -79,8 +78,68 @@ export const Invoices = () => {
         </div>
       </div>
 
-      {/* Invoices Datatable */}
-      <div className="rounded-xl bg-slate-900 border border-slate-800 overflow-hidden shadow-sm">
+      {/* Mobile Card View (< sm screens) */}
+      <div className="sm:hidden space-y-3">
+        {filteredInvoices.length === 0 ? (
+          <div className="p-8 text-center text-slate-500 bg-slate-900 rounded-2xl border border-slate-800">
+            No invoices found.
+          </div>
+        ) : (
+          filteredInvoices.map((inv) => (
+            <div
+              key={inv.id}
+              className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2.5 shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <span className="font-mono text-xs font-bold text-brand-400 block">
+                    {inv.invoiceNumber}
+                  </span>
+                  <h4 className="text-sm font-bold text-white mt-0.5">{inv.customerName}</h4>
+                  {inv.customerPhone && (
+                    <span className="text-[11px] text-slate-400 font-mono">{inv.customerPhone}</span>
+                  )}
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  inv.status === 'PAID'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    : inv.status === 'PARTIAL'
+                    ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                }`}>
+                  {inv.status}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between text-xs py-1.5 border-y border-slate-800/80">
+                <span className="text-slate-400">
+                  {formatDate(inv.date)} • {formatTime(inv.date)}
+                </span>
+                <span className="font-mono font-bold text-white text-sm">
+                  {formatCurrency(inv.grandTotal)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-[10px] uppercase font-semibold text-slate-400">
+                  Mode: <span className="text-brand-300 font-mono">{inv.paymentMode}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setActiveReceipt(inv)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600/20 hover:bg-brand-600 text-brand-300 hover:text-white rounded-xl text-xs font-semibold transition-all"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>View & Print</span>
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Invoices Datatable (sm and larger screens) */}
+      <div className="hidden sm:block rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
@@ -140,7 +199,9 @@ export const Invoices = () => {
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                           inv.status === 'PAID'
                             ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            : inv.status === 'PARTIAL'
+                            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
                         }`}>
                           {inv.status}
                         </span>
@@ -148,8 +209,8 @@ export const Invoices = () => {
                       <td className="py-3 px-4 text-right">
                         <button
                           onClick={() => setActiveReceipt(inv)}
-                          title="View / Print Receipt"
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white transition-colors"
+                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+                          title="Print / View Receipt"
                         >
                           <Printer className="w-3.5 h-3.5" />
                         </button>
@@ -163,7 +224,7 @@ export const Invoices = () => {
         </div>
       </div>
 
-      {/* Active Thermal Modal */}
+      {/* Thermal Receipt Print Modal */}
       {activeReceipt && (
         <ThermalReceiptModal
           invoice={activeReceipt}

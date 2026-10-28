@@ -18,9 +18,27 @@ import { useTheme, THEMES, THEME_OPTIONS } from '../context/ThemeContext';
 import { INDIAN_STATES } from '../utils/formatters';
 
 export const Settings = () => {
-  const { businessProfile, updateBusinessProfile } = useAuth();
+  const { businessProfile, updateBusinessProfile, logout, resetCurrentStoreData } = useAuth();
   const { theme, setTheme } = useTheme();
-  const [formData, setFormData] = useState({ ...businessProfile });
+  const [formData, setFormData] = useState(() => ({
+    name: businessProfile?.name || '',
+    tagline: businessProfile?.tagline || '',
+    gstin: businessProfile?.gstin || '',
+    stateCode: businessProfile?.stateCode || '07',
+    stateName: businessProfile?.stateName || 'Delhi',
+    address: businessProfile?.address || '',
+    phone: businessProfile?.phone || '',
+    email: businessProfile?.email || '',
+    upiId: businessProfile?.upiId || '',
+    bankDetails: businessProfile?.bankDetails || {
+      bankName: '',
+      accountNumber: '',
+      ifsc: '',
+      branch: ''
+    },
+    invoicePrefix: businessProfile?.invoicePrefix || 'INV/',
+    termsAndConditions: businessProfile?.termsAndConditions || ''
+  }));
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const handleSubmit = (e) => {
@@ -379,6 +397,42 @@ export const Settings = () => {
               onChange={(e) => setFormData({ ...formData, termsAndConditions: e.target.value })}
               className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:ring-1 focus:ring-brand-500 font-mono"
             ></textarea>
+          </div>
+        </div>
+
+        {/* Store & Data Management */}
+        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+          <div className="pb-2 border-b border-slate-800">
+            <h3 className="font-semibold text-white text-sm">Store & Data Management (दुकान एवं डेटा प्रबंधन)</h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              अपनी दुकान का डेटा रीसेट करें या दूसरी दुकान में स्विच करें।
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('क्या आप सच में इस स्टोर का डेटा (सभी बिल, स्टॉक) खाली करके फ्रेश शुरू करना चाहते हैं?')) {
+                  resetCurrentStoreData();
+                }
+              }}
+              className="px-4 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold transition-all text-center"
+            >
+              डेटा रीसेट करें (Clear Invoices & Products)
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('क्या आप लॉगआउट करके नई दुकान बनाना या दूसरी दुकान चुनना चाहते हैं?')) {
+                  logout();
+                }
+              }}
+              className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold transition-all text-center"
+            >
+              दुकान बदलें / लॉगआउट (Switch Store / New Store)
+            </button>
           </div>
         </div>
 
